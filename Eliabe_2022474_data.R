@@ -3,9 +3,9 @@
 
 # Set the path
 getwd()
-setwd("C:/Users/HP/Documents/R-studio")
+setwd("C:/Users/HP/Desktop/Eliabe_2022474CA1_dataEXP")
 # reading data
-crimes<-read.csv(file="C:/Users/HP/Documents/R-studio/crimes.csv",stringsAsFactors=TRUE)
+crimes<-read.csv(file="C:/Users/HP/Desktop/Eliabe_2022474CA1_dataEXP/crimes.csv",stringsAsFactors=TRUE)
 
 head(crimes)
 
@@ -70,19 +70,16 @@ for (variable in variables_to_replace) {
   }
 }
 
-
 # Select from my column 5 to 18
 # Apply mean, median, minimum, maximum, and standard deviation to selected columns
 summary_crimes <- apply(crimes[, 5:18], 2, function(x) 
   c(mean = mean(x), median = median(x), min = min(x), max = max(x), sd = sd(x)))
 
 # Convert the result to a data frame for better readability
-summary_crimes_c <- as.data.frame(summary_crimes)2w
+summary_crimes_c <- as.data.frame(summary_crimes)
 
 # Print the result
 print(summary_crimes_c)
-
-
 
 
 #------------------------------------//---------------------------------------
@@ -116,9 +113,52 @@ crimes_robust[, 5:18] <- scale(crimes[, 5:18], center = TRUE, scale = TRUE)
 print(crimes_robust)
 
 
-
-
 #-----------------------------------//----------------------------------------
+
+
+# d)  Line, Scatter and Heatmaps can be used to show the correlation between the features of the dataset.
+# e) Graphics and descriptive understanding should be provided along with Data Exploratory analysis
+# (EDA). Identify subgroups of features that can explore some interesting facts
+
+
+library(ggplot2)
+
+numeric_columns <- sapply(crimes, is.numeric)
+numeric_data <- crimes[, numeric_columns]
+
+# Calculate the correlation matrix
+correlation_matrix <- cor(numeric_data)
+
+# Create a heatmap using ggplot2
+library(ggplot2)
+ggplot(data = reshape2::melt(correlation_matrix), aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low = "lightblue", high = "darkblue") +
+  labs(title = "Heatmap Correlation graph",
+       x = "Features",
+       y = "Features",
+       fill = "Correlation")
+
+
+# Ploat a pie graph to rape in years
+# I chose YEAR and RAPE column
+crime <- crimes[, c("YEAR", "RAPE")]
+
+# Aggregate the data by summing the number of rape cases for each year
+agg_data <- aggregate(RAPE ~ YEAR, data = crime, sum)
+
+# Now I create a pie, where will show the total of rapes by year
+
+ggplot(agg_data, aes(x = "", y = RAPE, fill = as.factor(YEAR))) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  geom_text(aes(label = RAPE), position = position_stack(vjust = 0.5)) +
+  theme_minimal() +
+  labs(title = "RAPE Cases by Year", fill = "Year") +
+  scale_fill_brewer(palette = "Set3")
+
+#---------------------------------------------//--------------------------------
 
 # f) Apply dummy encoding to categorical variables (at least one variable used from the data set) and
 # discuss the benefits of dummy encoding to understand the categorical data.
@@ -210,3 +250,20 @@ pc_loadings <- pca_result$rotation
 # View the results
 print(pc_scores)
 print(pc_loadings)
+summary(pca_result)
+
+
+#------------------------------------------//-----------------------------------
+
+
+# h) What is the purpose of dimensionality reduction? Explore the situations where you can gain the
+# benefit of dimensionality reduction for data analysis.
+
+cumulative_variance <- cumsum(pca_result$sdev^2) / sum(pca_result$sdev^2)
+ggplot() +
+  geom_line(aes(x = 1:length(cumulative_variance), y = cumulative_variance), color = "blue") +
+  labs(title = "PCA reduction graph",
+       x = "Principal Components",
+       y = "Proportion of Variance") 
+
+
