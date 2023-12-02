@@ -29,9 +29,9 @@ plot(crimes$YEAR, crimes$RAPE,
      ylab = "RAPE Counts",
      col = "red", 
      pch = 16)
-  box(which = "plot",
-      lty = "solid",
-      col="black")
+box(which = "plot",
+    lty = "solid",
+    col="black")
 
 
 
@@ -74,7 +74,7 @@ for (variable in variables_to_replace) {
 # Select from my column 5 to 18
 # Apply mean, median, minimum, maximum, and standard deviation to selected columns
 summary_crimes <- apply(crimes[, 5:18], 2, function(x) 
-c(mean = mean(x), median = median(x), min = min(x), max = max(x), sd = sd(x)))
+  c(mean = mean(x), median = median(x), min = min(x), max = max(x), sd = sd(x)))
 
 # Convert the result to a data frame for better readability
 summary_crimes_c <- as.data.frame(summary_crimes)2w
@@ -138,3 +138,75 @@ head(crimes, 10)
 
 
 
+
+data <- crimes
+
+
+# Identify numeric columns
+numeric_columns <- sapply(data, is.numeric)
+
+# Subset the data to include only numeric columns
+numeric_data <- data[, numeric_columns]
+
+# Handle missing values (replace NAs with column means)
+for (col in colnames(numeric_data)) {
+  numeric_data[is.na(numeric_data[, col]), col] <- mean(numeric_data[, col], na.rm = TRUE)
+}
+
+# Scale the numeric data
+scaled_data <- scale(numeric_data)
+
+# Perform PCA with two components
+library(stats)
+pca_result <- princomp(scaled_data, cor = TRUE)
+
+# Extract the first two principal components
+principal_components <- pca_result$scores[, 1:2]
+summary(pca_result)
+
+# Variance explained by each principal component
+cumulative_variance <- cumsum(pca_result$sdev^2) / sum(pca_result$sdev^2)
+cat("Cumulative Variance Explained:\n", cumulative_variance, "\n")
+
+# Print the first few rows of the transformed data
+head(principal_components)
+
+
+# --------------------------------------------//--------------------------------
+
+
+# g) Apply PCA with your chosen number of components. Write up a short profile of the first few
+# components extracted based on your understanding.
+
+
+crimes <- as.data.frame(crimes)
+
+# Identify numeric columns
+numeric_columns <- sapply(crimes, is.numeric)
+
+# Handle missing values for numeric columns
+crimes[, numeric_columns] <- lapply(crimes[, numeric_columns], function(x) ifelse(is.na(x), mean(x, na.rm = TRUE), x))
+
+# Replace infinite values with a large number (adjust as needed)
+crimes[is.infinite(as.matrix(crimes))] <- 1e6
+
+# Exclude unnecessary columns
+columns_to_exclude <- c('index', 'STATE/UT', 'DISTRICT', 'YEAR')
+crime_data_subset <- crimes[, !(names(crimes) %in% columns_to_exclude)]
+
+# Identify numeric columns in the subset
+numeric_columns_subset <- sapply(crime_data_subset, is.numeric)
+
+# Scale only the numeric columns
+scaled_data <- scale(crime_data_subset[, numeric_columns_subset])
+
+# Perform PCA using prcomp
+pca_result <- prcomp(scaled_data, center = TRUE, scale. = TRUE)
+
+# Extract the scores and loadings
+pc_scores <- pca_result$x
+pc_loadings <- pca_result$rotation
+
+# View the results
+print(pc_scores)
+print(pc_loadings)
