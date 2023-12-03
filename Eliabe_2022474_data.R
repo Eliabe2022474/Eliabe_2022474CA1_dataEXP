@@ -52,7 +52,6 @@ print(paste("Total of NA in RAPE column: ", total_NA_RAPE))
 # b) Calculate the statistical parameters (mean, median, minimum, maximum, and standard deviation)
 # for each of the numerical variables.
 
-
 # As I have some NA in my numeric columns, I need to covert those to 0
 variables_to_replace <- c("MURDER", "YEAR", "CULPABLE_HOMICIDE", 
                           "RAPE", "CUSTODIAL_RAPE","OTHER_RAPE","KIDNAPPING_ACY_ABDUCTION", 
@@ -70,6 +69,7 @@ for (variable in variables_to_replace) {
   }
 }
 
+
 # Select from my column 5 to 18
 # Apply mean, median, minimum, maximum, and standard deviation to selected columns
 summary_crimes <- apply(crimes[, 5:18], 2, function(x) 
@@ -80,6 +80,9 @@ summary_crimes_c <- as.data.frame(summary_crimes)
 
 # Print the result
 print(summary_crimes_c)
+
+
+
 
 
 #------------------------------------//---------------------------------------
@@ -94,7 +97,8 @@ normalizeMinMax <- function(x) {
 }
 crime_minmax <- crimes
 crime_minmax[, 5:18] <- apply(crimes[, 5:18], 2, normalizeMinMax)
-print(crime_minmax)
+# print(crime_minmax)
+head (crime_minmax)
 
 
 
@@ -104,14 +108,15 @@ normalizeStandardized <- function(x) {
 }
 crimes_standardized <- crimes
 crimes_standardized[, 5:18] <- apply(crimes[, 5:18], 2, normalizeStandardized)
-print(crimes_standardized)
+# print(crimes_standardized)
+head (crimes_standardized)
 
 # Robust scalar
 
 crimes_robust <- crimes
 crimes_robust[, 5:18] <- scale(crimes[, 5:18], center = TRUE, scale = TRUE)
-print(crimes_robust)
-
+#print(crimes_robust)
+head (crimes_robust)
 
 #-----------------------------------//----------------------------------------
 
@@ -158,7 +163,11 @@ ggplot(agg_data, aes(x = "", y = RAPE, fill = as.factor(YEAR))) +
   labs(title = "RAPE Cases by Year", fill = "Year") +
   scale_fill_brewer(palette = "Set3")
 
+
+
 #---------------------------------------------//--------------------------------
+
+
 
 # f) Apply dummy encoding to categorical variables (at least one variable used from the data set) and
 # discuss the benefits of dummy encoding to understand the categorical data.
@@ -167,49 +176,11 @@ install.packages("fastDummies")
 # Load the package
 library(fastDummies)
 
-# Assuming 'crimes' is the name of your dataset
-# Replace 'crimes' with the actual name of your dataset
-
 # Create dummy variables
 crimes <- dummy_cols(crimes$STATE.UT)
 
 # Display the result
-head(crimes, 10)
-
-
-
-
-data <- crimes
-
-
-# Identify numeric columns
-numeric_columns <- sapply(data, is.numeric)
-
-# Subset the data to include only numeric columns
-numeric_data <- data[, numeric_columns]
-
-# Handle missing values (replace NAs with column means)
-for (col in colnames(numeric_data)) {
-  numeric_data[is.na(numeric_data[, col]), col] <- mean(numeric_data[, col], na.rm = TRUE)
-}
-
-# Scale the numeric data
-scaled_data <- scale(numeric_data)
-
-# Perform PCA with two components
-library(stats)
-pca_result <- princomp(scaled_data, cor = TRUE)
-
-# Extract the first two principal components
-principal_components <- pca_result$scores[, 1:2]
-summary(pca_result)
-
-# Variance explained by each principal component
-cumulative_variance <- cumsum(pca_result$sdev^2) / sum(pca_result$sdev^2)
-cat("Cumulative Variance Explained:\n", cumulative_variance, "\n")
-
-# Print the first few rows of the transformed data
-head(principal_components)
+head(crimes, 30)
 
 
 # --------------------------------------------//--------------------------------
@@ -219,7 +190,6 @@ head(principal_components)
 # components extracted based on your understanding.
 
 
-crimes <- as.data.frame(crimes)
 
 # Identify numeric columns
 numeric_columns <- sapply(crimes, is.numeric)
@@ -241,16 +211,17 @@ numeric_columns_subset <- sapply(crime_data_subset, is.numeric)
 scaled_data <- scale(crime_data_subset[, numeric_columns_subset])
 
 # Perform PCA using prcomp
-pca_result <- prcomp(scaled_data, center = TRUE, scale. = TRUE)
+pca_result1 <- prcomp(scaled_data, center = TRUE, scale. = TRUE)
 
-# Extract the scores and loadings
-pc_scores <- pca_result$x
-pc_loadings <- pca_result$rotation
+# Extract the scores and loading
+pc_scores <- pca_result1$x[, 1:3]
+pc_loadings <- pca_result1$rotation[, 11:13]
 
-# View the results
+# Print the loadings
 print(pc_scores)
 print(pc_loadings)
-summary(pca_result)
+summary(pca_result1)
+
 
 
 #------------------------------------------//-----------------------------------
@@ -265,5 +236,9 @@ ggplot() +
   labs(title = "PCA reduction graph",
        x = "Principal Components",
        y = "Proportion of Variance") 
+
+
+
+
 
 
