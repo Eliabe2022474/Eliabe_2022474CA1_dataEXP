@@ -3,7 +3,7 @@
 
 # Set the path
 getwd()
-setwd("C:/Users/HP/Desktop/Eliabe_2022474CA1_dataEXP")
+setwd("C:/Users/HP/Documents/R-studio")
 # reading data
 crimes<-read.csv(file="C:/Users/HP/Desktop/Eliabe_2022474CA1_dataEXP/crimes.csv",stringsAsFactors=TRUE)
 
@@ -52,6 +52,7 @@ print(paste("Total of NA in RAPE column: ", total_NA_RAPE))
 # b) Calculate the statistical parameters (mean, median, minimum, maximum, and standard deviation)
 # for each of the numerical variables.
 
+
 # As I have some NA in my numeric columns, I need to covert those to 0
 variables_to_replace <- c("MURDER", "YEAR", "CULPABLE_HOMICIDE", 
                           "RAPE", "CUSTODIAL_RAPE","OTHER_RAPE","KIDNAPPING_ACY_ABDUCTION", 
@@ -84,7 +85,6 @@ print(summary_crimes_c)
 
 
 
-
 #------------------------------------//---------------------------------------
 
 # c) Apply Min-Max Normalization, Z-score Standardization and Robust scalar on the numerical data
@@ -92,14 +92,22 @@ print(summary_crimes_c)
 
 
 # Min-Max Scaling/Normalization
+# Check data types of the specified columns
+column_types <- sapply(crimes[, 5:18], class)
+
+# Identify columns with non-numeric data
+non_numeric_columns <- names(which(column_types != "numeric"))
+
+# Convert non-numeric columns to numeric
+crimes[, non_numeric_columns] <- lapply(crimes[, non_numeric_columns], as.numeric)
+
+# Apply Min-Max Normalization
 normalizeMinMax <- function(x) {
   return ((x - min(x)) / (max(x) - min(x)))
 }
 crime_minmax <- crimes
 crime_minmax[, 5:18] <- apply(crimes[, 5:18], 2, normalizeMinMax)
-# print(crime_minmax)
 head (crime_minmax)
-
 
 
 # Z-score Standardization
@@ -108,60 +116,13 @@ normalizeStandardized <- function(x) {
 }
 crimes_standardized <- crimes
 crimes_standardized[, 5:18] <- apply(crimes[, 5:18], 2, normalizeStandardized)
-# print(crimes_standardized)
-head (crimes_standardized)
+print(crimes_standardized)
 
 # Robust scalar
 
 crimes_robust <- crimes
 crimes_robust[, 5:18] <- scale(crimes[, 5:18], center = TRUE, scale = TRUE)
-#print(crimes_robust)
-head (crimes_robust)
-
-#-----------------------------------//----------------------------------------
-
-
-# d)  Line, Scatter and Heatmaps can be used to show the correlation between the features of the dataset.
-# e) Graphics and descriptive understanding should be provided along with Data Exploratory analysis
-# (EDA). Identify subgroups of features that can explore some interesting facts
-
-
-library(ggplot2)
-
-numeric_columns <- sapply(crimes, is.numeric)
-numeric_data <- crimes[, numeric_columns]
-
-# Calculate the correlation matrix
-correlation_matrix <- cor(numeric_data)
-
-# Create a heatmap using ggplot2
-library(ggplot2)
-ggplot(data = reshape2::melt(correlation_matrix), aes(Var1, Var2, fill = value)) +
-  geom_tile() +
-  theme_minimal() +
-  scale_fill_gradient(low = "lightblue", high = "darkblue") +
-  labs(title = "Heatmap Correlation graph",
-       x = "Features",
-       y = "Features",
-       fill = "Correlation")
-
-
-# Ploat a pie graph to rape in years
-# I chose YEAR and RAPE column
-crime <- crimes[, c("YEAR", "RAPE")]
-
-# Aggregate the data by summing the number of rape cases for each year
-agg_data <- aggregate(RAPE ~ YEAR, data = crime, sum)
-
-# Now I create a pie, where will show the total of rapes by year
-
-ggplot(agg_data, aes(x = "", y = RAPE, fill = as.factor(YEAR))) +
-  geom_bar(stat = "identity", width = 1) +
-  coord_polar("y") +
-  geom_text(aes(label = RAPE), position = position_stack(vjust = 0.5)) +
-  theme_minimal() +
-  labs(title = "RAPE Cases by Year", fill = "Year") +
-  scale_fill_brewer(palette = "Set3")
+print(crimes_robust)
 
 
 
@@ -180,7 +141,7 @@ library(fastDummies)
 crimes <- dummy_cols(crimes$STATE.UT)
 
 # Display the result
-head(crimes, 30)
+head(crimes, 10)
 
 
 # --------------------------------------------//--------------------------------
@@ -211,16 +172,16 @@ numeric_columns_subset <- sapply(crime_data_subset, is.numeric)
 scaled_data <- scale(crime_data_subset[, numeric_columns_subset])
 
 # Perform PCA using prcomp
-pca_result1 <- prcomp(scaled_data, center = TRUE, scale. = TRUE)
+pca_result <- prcomp(scaled_data, center = TRUE, scale. = TRUE)
 
 # Extract the scores and loading
-pc_scores <- pca_result1$x[, 1:3]
-pc_loadings <- pca_result1$rotation[, 11:13]
+pc_scores <- pca_result$x[, 1:3]
+pc_loadings <- pca_result$rotation[, 11:13]
 
 # Print the loadings
 print(pc_scores)
 print(pc_loadings)
-summary(pca_result1)
+summary(pca_result)
 
 
 
@@ -229,6 +190,9 @@ summary(pca_result1)
 
 # h) What is the purpose of dimensionality reduction? Explore the situations where you can gain the
 # benefit of dimensionality reduction for data analysis.
+
+install.packages("ggplot2")
+library(ggplot2)
 
 cumulative_variance <- cumsum(pca_result$sdev^2) / sum(pca_result$sdev^2)
 ggplot() +
